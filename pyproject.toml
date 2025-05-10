@@ -1,0 +1,15 @@
+[project]
+name = "finalProjectCS50"
+version = "0.1.0"
+description = "This is my final project for the CS50x"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "cryptography>=44.0.2",
+    "python-dotenv>=1.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.4",
+]
