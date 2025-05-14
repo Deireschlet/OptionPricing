@@ -19,3 +19,6 @@ logs
 # Key file
 pass.key
 .env
+
+# debugging info from C compiler
+*.dSYM
