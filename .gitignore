@@ -22,3 +22,6 @@ pass.key
 
 # debugging info from C compiler
 *.dSYM
+
+# pickle files
+*.pkl
