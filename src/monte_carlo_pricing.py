@@ -4,15 +4,12 @@ import datetime as dt
 from setup import logger, config
 from setup.logger import log_call
 from src.data_handler import get_user_input, fetch_stock_data, plot_1d_distribution, plot_1d_data
-from src.computation import black_scholes, annualized_historical_vola, simulate_stock_price, discounted_avg_payoff \
+from src.computation import black_scholes, annualized_historical_vola, simulate_stock_paths, discounted_avg_payoff \
     , payoff
 
 
 @log_call(logger)
-def mc_pricing():
-    option_type, ticker, strike_price, maturity, risk_free_rate, vola = get_user_input()
-
-    df = fetch_stock_data(ticker, "2023-01-01", dt.date.today().strftime("%Y-%m-%d"))
+def mc_pricing(option_type, df, strike_price, maturity, risk_free_rate, vola):
 
     if not vola:
         vola = annualized_historical_vola(df)
@@ -28,7 +25,7 @@ def mc_pricing():
                             )
 
     # mu=rate_free_rate otherwise it does not work
-    mc_prices = simulate_stock_price(df['Close'].iloc[-1],
+    mc_prices = simulate_stock_paths(df['Close'].iloc[-1],
                                      mu=risk_free_rate,
                                      sigma=vola,
                                      T=maturity,
@@ -56,6 +53,8 @@ def mc_pricing():
 
     plot_1d_distribution(profit_vector, r"Profit $P_T$", highlight_value=0)
     plot_1d_distribution(S_T_vector, r"Asset Price $S_T$", default_color='blue')
+
+    # todo: create a data frame to return and concate in main
 
     print(f"Prob for profit: {prob_for_profit}")
     print(f"MC price: {mc_price}")
