@@ -35,7 +35,7 @@ def annualized_historical_vola(data: pd.DataFrame):
 
 
 @log_call(logger)
-def simulate_stock_price(S0: float, mu: float, sigma: float, T: int, N: int) -> np.ndarray:
+def simulate_stock_paths(S0: float, mu: float, sigma: float, T: int, N: int) -> np.ndarray:
     """
     Simulate stock prices using the Geometric Brownian Motion model.
 
@@ -106,6 +106,55 @@ def payoff(price: np.ndarray, strike: float, option_type: str="call"):
         return np.maximum(strike - price, 0)
     else:
         return None
+
+
+@log_call(logger)
+def black_scholes_greeks(S, K, T, r, sigma, option_type='call'):
+    """
+    Calculates the Black-Scholes Greeks for a European call or put option.
+
+    Parameters:
+    S : float - current stock price
+    K : float - strike price
+    T : float - time to maturity (in years)
+    r : float - risk-free interest rate
+    sigma : float - volatility
+    option_type : str - 'call' or 'put'
+
+    Returns:
+    Dictionary of Greeks: Delta, Gamma, Vega, Theta, Rho
+    """
+    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+
+    nd1 = norm.pdf(d1)
+    Nd1 = norm.cdf(d1)
+    Nd2 = norm.cdf(d2)
+    N_neg_d2 = norm.cdf(-d2)
+
+    gamma = nd1 / (S * sigma * np.sqrt(T))
+    vega = S * nd1 * np.sqrt(T) / 100  # per 1% change in vol
+
+    if option_type == 'call':
+        delta = Nd1
+        theta = (-S * nd1 * sigma / (2 * np.sqrt(T))
+                 - r * K * np.exp(-r * T) * Nd2) / 365  # per day
+        rho = K * T * np.exp(-r * T) * Nd2 / 100       # per 1% rate change
+    elif option_type == 'put':
+        delta = Nd1 - 1
+        theta = (-S * nd1 * sigma / (2 * np.sqrt(T))
+                 + r * K * np.exp(-r * T) * N_neg_d2) / 365
+        rho = -K * T * np.exp(-r * T) * N_neg_d2 / 100
+    else:
+        raise ValueError("option_type must be 'call' or 'put'")
+
+    return {
+        'Delta': delta,
+        'Gamma': gamma,
+        'Vega': vega,
+        'Theta': theta,
+        'Rho': rho
+    }
 
 
 if __name__ == "__main__":
