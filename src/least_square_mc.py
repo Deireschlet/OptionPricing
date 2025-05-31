@@ -3,29 +3,27 @@ from numpy.polynomial.polynomial import polyval, polyfit
 from setup import logger, config
 from setup.logger import log_call
 from src.computation import simulate_stock_paths, black_scholes
+from src.option import Option
 
 TRADING_DAYS = config.getint("PROJECT", "trading_days")
 
 
 @log_call(logger)
 def lsm_american(S0: float,
-                     K: float,
-                     r: float,
-                     sigma: float,
-                     T_days: int,
-                     n_paths: int = 100_000,
-                     poly_degree: int = 2,
-                     q:float = 0.0,
-                     option_type: str = "put",
-                     ) -> float:
+                 option: Option,
+                 n_paths: int = config.getint("PROJECT", "simulations"),
+                 poly_degree: int = 2,
+                 q:float = 0.0,
+                 option_type: str = "put",
+                 ) -> float:
 
     """
     Price an American put or call via the Longstaff-Schwartz LSM algorithm.
 
     Parameters
     ----------
-    S0, K, r, sigma : usual Black-Scholes inputs (r, sigma annualised)
-    T_days          : maturity in trading days
+    S0              : initial stock price
+    option          : option object with strike price, maturity and risk-free rate set
     n_paths         : number of Monte-Carlo paths
     poly_degree     : polynomial degree for the regression (typically 2)
     q               : continuous dividend yield (annualised)
@@ -36,6 +34,10 @@ def lsm_american(S0: float,
     price : float
         LSM estimate of the option value at t = 0, average and already discounted
     """
+    r = option.risk_free_rate
+    sigma = option.volatility
+    T_days = option.maturity
+    K = option.strike_price
 
     dt = 1 / TRADING_DAYS
     disc = np.exp(-r * dt)
@@ -87,8 +89,11 @@ if __name__ == "__main__":
     sigma  = 0.2
     T_days = 252
 
+    put_option = Option("put", K, T_days, r, sigma)
+    call_option = Option("call", K, T_days, r, sigma)
+
     # American put via LSM
-    am_price = lsm_american(S0, K, r, sigma, T_days, n_paths=100_000)
+    am_price = lsm_american(S0, put_option, n_paths=100_000)
     print("LSM American put:", round(am_price, 4))
 
     # European put (Black-Scholes) for reference
@@ -96,7 +101,7 @@ if __name__ == "__main__":
     print(f"BS put price: {bs_price}")
 
     # American call via LSM
-    am_call_price = lsm_american(S0, K, r, sigma, T_days, n_paths=100_000, option_type="call")
+    am_call_price = lsm_american(S0, call_option, n_paths=100_000, option_type="call")
     print(f"LSM American call: {am_call_price}")
 
     # European call (Black-Scholes) for reference
