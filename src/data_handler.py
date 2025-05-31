@@ -19,12 +19,16 @@ from setup.logger import log_call
 
 @log_call(logger)
 def get_user_input():
-    option_type = input("Enter option type (put or call): ")
-    ticker = input("Enter ticker symbol: ")
-    strike_price = float(input("Enter strike price: "))
-    maturity = int(input("Enter maturity (in days): "))
-    risk_free_rate = float(input("Enter risk-free rate: "))
-    vola = input("Enter annualized volatility: ")
+    try:
+        option_type = input("Enter option type (put or call): ")
+        ticker = input("Enter ticker symbol: ")
+        strike_price = float(input("Enter strike price: "))
+        maturity = int(input("Enter maturity (in days): "))
+        risk_free_rate = float(input("Enter risk-free rate: "))
+        vola = float(input("Enter annualized volatility: "))
+    except ValueError as e:
+        logger.exception(e)
+        exit(1)
     return option_type, ticker, strike_price, maturity, risk_free_rate, vola
 
 
