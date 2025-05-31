@@ -19,7 +19,7 @@ def mc_pricing(option: Option, df: pd.DataFrame=None):
     r = option.risk_free_rate
     T = option.maturity
     K = option.strike_price
-    type = option.option_type
+    opt_type = option.option_type
 
     # mu=r otherwise it does not work
     asset_paths = simulate_stock_paths(df['Close'].iloc[-1],
@@ -35,12 +35,12 @@ def mc_pricing(option: Option, df: pd.DataFrame=None):
                                      strike=K,
                                      r=r,
                                      T=T,
-                                     option_type=type
+                                     option_type=opt_type
                                      )
 
     payoff_vector = payoff(price=price_at_maturity,
                            strike=K,
-                           option_type=type
+                           option_type=opt_type
                            )
 
 
