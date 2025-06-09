@@ -8,9 +8,11 @@ dependencies = [
     "cryptography>=44.0.2",
     "matplotlib>=3.10.3",
     "numpy>=2.2.5",
+    "plotly>=6.1.2",
     "pytest>=8.3.5",
     "python-dotenv>=1.1.0",
     "scipy>=1.15.3",
+    "streamlit>=1.45.1",
     "yfinance>=0.2.61",
 ]
 

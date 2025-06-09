@@ -40,6 +40,15 @@ class Option:
         self.volatility = volatility if volatility else None
         self.underlying_ticker = underlying_ticker
 
+    def to_tuple(self):
+        return (
+            self.strike_price,
+            self.maturity,
+            self.risk_free_rate,
+            self.volatility,
+            self.option_type
+        )
+
     def __str__(self):
         """String representation of the Option."""
         return f"{self.option_type.capitalize()} option on {self.underlying_ticker or 'unknown'} with strike {self.strike_price}, maturity {self.maturity} days"
