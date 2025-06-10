@@ -18,7 +18,7 @@ def mc_pricing(option: Option=None,
                ):
 
     if option is not None:
-        K, T, r, sigma, opt_type = option.to_tuple()
+        S0, K, T, r, sigma, opt_type = option.to_tuple()
 
     if sigma is None:
         sigma = annualized_historical_vola(df)

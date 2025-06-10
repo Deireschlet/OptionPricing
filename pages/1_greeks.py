@@ -1,5 +1,6 @@
 import streamlit as st
 from src.visualization import plot_greeks_vs_strike, plot_greeks_vs_maturity
+from src.option import Option
 
 st.set_page_config(layout="wide")  # better use of screen space
 st.title("🏛️ Option Greeks Visualizer")
@@ -7,9 +8,9 @@ st.title("🏛️ Option Greeks Visualizer")
 # Sidebar parameters
 st.sidebar.header("Parameters")
 
-option = st.session_state["option_obj"]
+option_obj: Option = st.session_state["option_obj"]
 
-
+spot, strike, maturity, rate, vola, opt_type = option_obj.to_tuple()
 
 S0 = st.sidebar.slider("Spot Price", 50, 150, 100)
 sigma = st.sidebar.slider("Volatility", 0.05, 1.0, 0.2)

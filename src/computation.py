@@ -62,7 +62,7 @@ def simulate_stock_paths(S0: float, mu: float=0, sigma: float=None, T: int=None,
     return prices
 
 @log_call(logger)
-def black_scholes(S0, option: Option=None, K=None, T=None, r=None, sigma=None, option_type="call"):
+def black_scholes(option: Option=None, S0=None,  K=None, T=None, r=None, sigma=None, option_type="call"):
     """
     Calculate the price of a European-style option using the Black-Scholes formula.
 
@@ -80,7 +80,7 @@ def black_scholes(S0, option: Option=None, K=None, T=None, r=None, sigma=None, o
         None: If option_type is neither "call" nor "put".
     """
     if option is not None:
-        K, T, r, sigma, option_type = option.to_tuple()
+        S0, K, T, r, sigma, option_type = option.to_tuple()
 
     t_years = T / YEAR
     d1 = (np.log(S0 / K) + (r + 0.5 * sigma ** 2) * t_years) / (sigma * np.sqrt(t_years))
@@ -117,7 +117,7 @@ def payoff(price: np.ndarray, strike: float, option_type: str="call"):
 
 
 @log_call(logger)
-def black_scholes_greeks(S0, option: Option=None, K=None, T=None, r=None, sigma=None, option_type="call"):
+def black_scholes_greeks(option: Option=None, S0=None, K=None, T=None, r=None, sigma=None, option_type="call"):
     """
     Calculates the Black-Scholes Greeks for a European call or put option.
 
@@ -129,7 +129,7 @@ def black_scholes_greeks(S0, option: Option=None, K=None, T=None, r=None, sigma=
     """
 
     if option is not None:
-        K, T, r, sigma, option_type = option.to_tuple()
+        S0, K, T, r, sigma, option_type = option.to_tuple()
 
     d1 = (np.log(S0 / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)

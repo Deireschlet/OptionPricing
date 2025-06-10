@@ -9,8 +9,8 @@ TRADING_DAYS = config.getint("PROJECT", "trading_days")
 
 
 @log_call(logger)
-def lsm_american(S0: float,
-                 option: Option,
+def lsm_american(option: Option,
+                 S0: float,
                  K: float,
                  sigma: float,
                  T: int,
@@ -43,7 +43,7 @@ def lsm_american(S0: float,
         LSM estimate of the option value at t = 0, average and already discounted
     """
     if option is not None:
-        K, T, r, sigma, option_type = option.to_tuple()
+        S0, K, T, r, sigma, option_type = option.to_tuple()
 
     dt = 1 / TRADING_DAYS
     disc = np.exp(-r * dt)
