@@ -61,6 +61,7 @@ def plot_vol_surface(
     ----------
     df                : DataFrame with columns 〈maturity_days, strike, price〉.
     spot              : Current spot/underlying price S0.
+    risk_free_rate    : Risk-free rate of volatility.
     iv_func           : Callable (price, spot, strike, maturity_days) → IV.
     maturity_col      : Column name for maturities in days.
     strike_col        : Column name for strikes.
@@ -131,12 +132,12 @@ def plot_vol_surface(
     fig.show()
 
 
-def plot_greeks_vs_strike(S0, T, r, sigma, option_type, strike_range):
+def plot_greeks_vs_strike(option: Option=None, S0=None, T=None, r=None, sigma=None, option_type="call", strike_range=None):
     greeks = {'Delta': [], 'Gamma': [], 'Vega': [], 'Theta': [], 'Rho': []}
     strikes = np.linspace(*strike_range, 50)
 
     for K in strikes:
-        option = Option(strike_price=K, maturity=T, risk_free_rate=r, volatility=sigma, option_type=option_type)
+        option = Option(strike_price=K, maturity=T, risk_free_rate=r, volatility=sigma, option_type=option_type) if option is None else option
         g = black_scholes_greeks(S0, option)
         for greek in greeks:
             greeks[greek].append(g[greek])
@@ -153,12 +154,12 @@ def plot_greeks_vs_strike(S0, T, r, sigma, option_type, strike_range):
     return fig
 
 
-def plot_greeks_vs_maturity(S0, K, r, sigma, option_type, maturity_range):
+def plot_greeks_vs_maturity(option: Option=None, S0=None, K=None, r=None, sigma=None, option_type="call", maturity_range=None):
     greeks = {'Delta': [], 'Gamma': [], 'Vega': [], 'Theta': [], 'Rho': []}
     maturities = np.linspace(*maturity_range, 50)
 
     for T in maturities:
-        option = Option(strike_price=K, maturity=T, risk_free_rate=r, volatility=sigma, option_type=option_type)
+        option = Option(strike_price=K, maturity=T, risk_free_rate=r, volatility=sigma, option_type=option_type) if option is None else option
         g = black_scholes_greeks(S0, option)
         for greek in greeks:
             greeks[greek].append(g[greek])

@@ -4,24 +4,31 @@ from setup.logger import log_call
 from src.computation import annualized_historical_vola, simulate_stock_paths, discounted_avg_payoff, payoff
 from src.option import Option
 
+N_PATHS = config.getint("PROJECT", "simulations")
 
 @log_call(logger)
-def mc_pricing(option: Option, df: pd.DataFrame=None, n_paths: int=config.getint("PROJECT", "simulations")):
+def mc_pricing(option: Option=None,
+               df: pd.DataFrame=None,
+               n_paths: int=N_PATHS,
+               K=None,
+               T=None,
+               r=None,
+               sigma=None,
+               opt_type="call",
+               ):
 
-    if not option.volatility:
-        vola = annualized_historical_vola(df)
+    if option is not None:
+        K, T, r, sigma, opt_type = option.to_tuple()
+
+    if sigma is None:
+        sigma = annualized_historical_vola(df)
     else:
-        vola = float(option.volatility)
-
-    r = option.risk_free_rate
-    T = option.maturity
-    K = option.strike_price
-    opt_type = option.option_type
+        sigma = float(option.volatility)
 
     # mu=r otherwise it does not work
     asset_paths = simulate_stock_paths(df['Close'].iloc[-1],
                                      mu=r,
-                                     sigma=vola,
+                                     sigma=sigma,
                                      T=T,
                                      N=n_paths
                                      )

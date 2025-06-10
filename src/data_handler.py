@@ -83,7 +83,7 @@ def fetch_option_data(ticker: str, opt_type: str) -> pd.DataFrame:
         pd.DataFrame: A DataFrame containing option chain data with days_to_maturity as index.
             Includes columns for strike price, bid, ask, volume, implied volatility, etc.
     """
-
+    # todo: edit function according to rene, only select specific data
     if opt_type not in {"call", "put"}:
         raise ValueError("Invalid option type. Please enter 'call' or 'put'.")
 

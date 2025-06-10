@@ -7,6 +7,10 @@ st.title("🏛️ Option Greeks Visualizer")
 # Sidebar parameters
 st.sidebar.header("Parameters")
 
+option = st.session_state["option_obj"]
+
+
+
 S0 = st.sidebar.slider("Spot Price", 50, 150, 100)
 sigma = st.sidebar.slider("Volatility", 0.05, 1.0, 0.2)
 r = st.sidebar.slider("Risk-Free Rate", 0.0, 0.1, 0.01)

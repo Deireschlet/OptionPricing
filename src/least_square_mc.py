@@ -11,6 +11,10 @@ TRADING_DAYS = config.getint("PROJECT", "trading_days")
 @log_call(logger)
 def lsm_american(S0: float,
                  option: Option,
+                 K: float,
+                 sigma: float,
+                 T: int,
+                 r: float,
                  n_paths: int = config.getint("PROJECT", "simulations"),
                  poly_degree: int = 2,
                  q:float = 0.0,
@@ -24,6 +28,10 @@ def lsm_american(S0: float,
     ----------
     S0              : initial stock price
     option          : option object with strike price, maturity and risk-free rate set
+    K               : Strike price
+    sigma           : Volatility annualized
+    T               : Days to maturity
+    r               : risk-free interest rate annualized
     n_paths         : number of Monte-Carlo paths
     poly_degree     : polynomial degree for the regression (typically 2)
     q               : continuous dividend yield (annualised)
@@ -34,14 +42,12 @@ def lsm_american(S0: float,
     price : float
         LSM estimate of the option value at t = 0, average and already discounted
     """
-    r = option.risk_free_rate
-    sigma = option.volatility
-    T_days = option.maturity
-    K = option.strike_price
+    if option is not None:
+        K, T, r, sigma, option_type = option.to_tuple()
 
     dt = 1 / TRADING_DAYS
     disc = np.exp(-r * dt)
-    paths = simulate_stock_paths(S0, r - q, sigma, T_days, n_paths)
+    paths = simulate_stock_paths(S0, r - q, sigma, T, n_paths)
 
     if option_type == "put":
         payoffs = np.maximum(K - paths[-1], 0)
@@ -49,7 +55,7 @@ def lsm_american(S0: float,
         payoffs = np.maximum(paths[-1] - K, 0)
 
     # backward induction
-    for t in range(T_days - 1, 0, -1):
+    for t in range(T - 1, 0, -1):
         S_t = paths[t]
 
         if option_type == "put":
