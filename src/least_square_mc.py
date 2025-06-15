@@ -9,12 +9,12 @@ TRADING_DAYS = config.getint("PROJECT", "trading_days")
 
 
 @log_call(logger)
-def lsm_american(option: Option,
-                 S0: float,
-                 K: float,
-                 sigma: float,
-                 T: int,
-                 r: float,
+def lsm_american(option: Option=None,
+                 S0: float=None,
+                 K: float=None,
+                 sigma: float=None,
+                 T: int=None,
+                 r: float=None,
                  n_paths: int = config.getint("PROJECT", "simulations"),
                  poly_degree: int = 2,
                  q:float = 0.0,

@@ -26,7 +26,7 @@ def get_latest_price(ticker: str) -> tuple[float, pd.DataFrame] | None:
     end = date.today().strftime("%Y-%m-%d")
     df = fetch_stock_data(ticker, start, end)
     if df is not None and not df.empty:
-        return float(df["Close"].iloc[-1]), df
+        return float(df["Close"].iloc[-1].item()), df
     return None
 
 

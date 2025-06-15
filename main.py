@@ -9,8 +9,6 @@ from src.least_square_mc import lsm_american
 from src.option import Option
 from src.computation import black_scholes_greeks, implied_volatility, black_scholes
 
-# todo: create dashboard for data
-# todo: pass relevant asset data to vola surface
 
 START_DATE = (dt.date.today() - dt.timedelta(days=365)).strftime("%Y-%m-%d")
 END_DATE: str = dt.date.today().strftime("%Y-%m-%d")

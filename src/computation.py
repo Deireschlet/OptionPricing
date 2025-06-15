@@ -117,62 +117,87 @@ def payoff(price: np.ndarray, strike: float, option_type: str="call"):
 
 
 @log_call(logger)
-def black_scholes_greeks(option: Option=None, S0=None, K=None, T=None, r=None, sigma=None, option_type="call"):
+def black_scholes_greeks(
+        option: Option = None,
+        S0: float = None,
+        K: float = None,
+        T: float = None,
+        r: float = None,
+        sigma: float = None,
+        option_type: str = "call",
+):
     """
-    Calculates the Black-Scholes Greeks for a European call or put option.
+    Black-Scholes Greeks for a European option.
 
-    Parameters:
-    S0 : float - current stock price
-    option : Option object with strike price, maturity and risk-free rate set
-    Returns:
-    Dictionary of Greeks: Delta, Gamma, Vega, Theta, Rho
+    Parameters
+    ----------
+    Provide EITHER an Option object OR all scalar inputs.
+    Theta is returned per day. Vega and Rho are per 1-percentage-point change.
+
+    Returns
+    -------
+    dict : {'Delta', 'Gamma', 'Vega', 'Theta', 'Rho'}
     """
 
+    # Input resolution
     if option is not None:
-        S0, K, T, r, sigma, option_type = option.to_tuple()
+        S0_, K_, T_, r_, sigma_, option_type_ = option.to_tuple()
+        # Scalars override tuple values if supplied
+        S0 = S0 if S0 is not None else S0_
+        K = K if K is not None else K_
+        T = T if T is not None else T_
+        r = r if r is not None else r_
+        sigma  = sigma  if sigma  is not None else sigma_
+        option_type = option_type or option_type_
 
-    d1 = (np.log(S0 / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
-    d2 = d1 - sigma * np.sqrt(T)
+    if None in (S0, K, T, r, sigma):
+        raise ValueError("Incomplete inputs: need S0, K, T, r, sigma.")
 
-    nd1 = norm.pdf(d1)
-    Nd1 = norm.cdf(d1)
-    Nd2 = norm.cdf(d2)
-    N_neg_d2 = norm.cdf(-d2)
+    if sigma <= 0 or T <= 0:
+        raise ValueError("sigma and T must be positive.")
 
-    gamma = nd1 / (S0 * sigma * np.sqrt(T))
-    vega = S0 * nd1 * np.sqrt(T) / 100  # per 1% change in vol
+    # T must be in years not days
+    T = T / YEAR
 
-    if option_type == 'call':
+    sqrtT = np.sqrt(T)
+    d1 = (np.log(S0 / K) + (r + 0.5 * sigma**2) * T) / (sigma * sqrtT)
+    d2 = d1 - sigma * sqrtT
+
+    nd1  = norm.pdf(d1)
+    Nd1  = norm.cdf(d1)
+    Nd2  = norm.cdf(d2)
+    Nneg_d2 = norm.cdf(-d2)
+
+    gamma = nd1 / (S0 * sigma * sqrtT)
+    vega  = S0 * nd1 * sqrtT / 100          # per 1 pp vol change
+
+    if option_type == "call":
         delta = Nd1
-        theta = (-S0 * nd1 * sigma / (2 * np.sqrt(T))
-                 - r * K * np.exp(-r * T) * Nd2) / YEAR  # per day
-        rho = K * T * np.exp(-r * T) * Nd2 / 100       # per 1% rate change
-    elif option_type == 'put':
+        theta = (-S0 * nd1 * sigma / (2 * sqrtT) - r * K * np.exp(-r*T) * Nd2) / YEAR
+        rho   = K * T * np.exp(-r*T) * Nd2 / 100
+    elif option_type == "put":
         delta = Nd1 - 1
-        theta = (-S0 * nd1 * sigma / (2 * np.sqrt(T))
-                 + r * K * np.exp(-r * T) * N_neg_d2) / YEAR
-        rho = -K * T * np.exp(-r * T) * N_neg_d2 / 100
+        theta = (-S0 * nd1 * sigma / (2 * sqrtT) + r * K * np.exp(-r*T) * Nneg_d2) / YEAR
+        rho   = -K * T * np.exp(-r*T) * Nneg_d2 / 100
     else:
         raise ValueError("option_type must be 'call' or 'put'")
 
-    return {
-        'Delta': delta,
-        'Gamma': gamma,
-        'Vega': vega,
-        'Theta': theta,
-        'Rho': rho
-    }
+    return {"Delta": float(delta),
+            "Gamma": float(gamma),
+            "Vega":  float(vega),
+            "Theta": float(theta),
+            "Rho":   float(rho)}
 
 
 @log_call(logger)
-def implied_volatility(C_market, S0, option: Option=None, K=None, T=None, r=None, option_type="call"):
+def implied_volatility(C_market, option: Option=None, S0=None, K=None, T=None, r=None, option_type="call"):
     if option:
         def objective(sigma):
             option.volatility = sigma  # update the volatility
-            return black_scholes(S0, option) - C_market
+            return black_scholes(option) - C_market
     else:
         def objective(sigma):
-            return black_scholes(S0, K=K, T=T, r=r, sigma=sigma, option_type=option_type) - C_market
+            return black_scholes(S0=S0, K=K, T=T, r=r, sigma=sigma, option_type=option_type) - C_market
     try:
         iv = brentq(objective, 1e-6, 5.0)
         return iv
@@ -183,9 +208,10 @@ def implied_volatility(C_market, S0, option: Option=None, K=None, T=None, r=None
 if __name__ == "__main__":
     S0 = 100
     K = 100
-    T_days = 252  # 1 year
+    T_days = 365  # 1 year
     r = 0.05
     sigma_annual = 0.2
+    opt_type = "call"
 
     # check if put call parity holds to see if black scholes implemented correctly
 
@@ -193,7 +219,13 @@ if __name__ == "__main__":
     put = black_scholes(S0=S0, K=K, T=T_days, r=r, sigma=sigma_annual, option_type="put")
     value_to_check = S0 - K * np.exp(-r * (T_days / 252))
 
-    if (call - put) - value_to_check < 1e-6:
+    if (call - put) - value_to_check < 1e-8:
         print("Put-call parity holds")
     else:
         print("Put-call parity does not hold")
+
+    print(black_scholes_greeks(
+        S0=S0, K=K, T=T_days, r=r, sigma=sigma_annual, option_type="call"
+    ))
+
+    print(sigma_annual, implied_volatility(call, S0=S0, K=K, T=T_days, r=r, option_type="call"))
