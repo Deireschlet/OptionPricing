@@ -30,7 +30,7 @@ def main():
     ticker = "AAPL"
     call_data = fetch_option_data(ticker, "call")
 
-    plot_vol_surface(call_data, spot=166.97, risk_free_rate=0.03)
+    plot_vol_surface(call_data, spot=197.97, risk_free_rate=0.03)
 
     print("Hallo")
 

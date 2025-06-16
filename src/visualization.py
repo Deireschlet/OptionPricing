@@ -54,8 +54,8 @@ def plot_vol_surface(
     iv_func=implied_volatility,
     maturity_col: str = "days_to_maturity",
     strike_col: str = "strike",
-    price_col: str = "ask",
-    colorscale: str = "Viridis",
+    price_col: str = "lastPrice",
+    colorscale: str = "Inferno",
 ) -> Optional[go.Figure]:
     """
     Plot an implied-volatility surface from a tidy DataFrame.
@@ -79,29 +79,33 @@ def plot_vol_surface(
     if maturity_col not in df.columns:
         df = df.reset_index(names=maturity_col)
 
-    # 1) compute implied vol for every row
+    # compute implied vol and moneyness for every row
     iv_series = df.apply(
         lambda r: iv_func(
             C_market=r[price_col], S0=spot, K=r[strike_col], T=r[maturity_col], r=risk_free_rate
         ),
         axis=1,
     )
-    df_iv = df.assign(iv=iv_series)
-    # todo: plot moneyness and not just strike
-    # 2) reshape to 2-D grid: rows = maturities, cols = strikes
+
+    moneyness_series = df[strike_col] / df[price_col]
+
+    df_iv = df.assign(iv=iv_series,
+                      moneyness=moneyness_series)
+
+    # reshape to 2-D grid: rows = maturities, cols = moneyness
     iv_grid = df_iv.pivot_table(
-        index=maturity_col, columns=strike_col, values="iv", aggfunc="mean"
+        index=maturity_col, columns="moneyness", values="iv", aggfunc="mean"
     ).sort_index()
 
     iv_grid = (
         iv_grid.interpolate("linear", axis=0)
         .interpolate("linear", axis=1)
-        .ffill(axis=0)  # was .fillna(method="ffill", axis=0)
-        .bfill(axis=0)  # was .fillna(method="bfill", axis=0)
-        .ffill(axis=1)  # axis=1 (across strikes)
+        .ffill(axis=0)
+        .bfill(axis=0)
+        .ffill(axis=1)
         .bfill(axis=1)
     )
-    # 3) mesh for Plotly
+    # mesh for Plotly
     maturities = iv_grid.index.to_numpy(dtype=float)      # y-axis (days)
     strikes = iv_grid.columns.to_numpy(dtype=float)    # x-axis
     K_grid, T_grid = np.meshgrid(strikes, maturities, indexing="xy")
@@ -125,7 +129,7 @@ def plot_vol_surface(
     fig.update_layout(
         title="Implied Volatility Surface",
         scene=dict(
-            xaxis_title="Strike",
+            xaxis_title="Moneyness",
             yaxis_title="Maturity (days)",
             zaxis_title="Implied Volatility",
         ),
