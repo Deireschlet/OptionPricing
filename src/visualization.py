@@ -89,12 +89,13 @@ def plot_vol_surface(
     )
     moneyness_series = df[strike_col] / spot
 
-    # sanity filter 1 % – 300 % sanity
+    # sanity filter 1 % – 150 % sanity
     mask = iv_series.between(0.05, 1.5)
     df_iv = df.loc[mask].assign(
         iv=iv_series[mask],
         moneyness=moneyness_series[mask],
     )
+    df_iv = df_iv[(df_iv["moneyness"].between(0.5, 1.5))]
 
     # reshape to 2-D grid: rows = maturities, cols = moneyness
     iv_grid = df_iv.pivot_table(
@@ -104,8 +105,12 @@ def plot_vol_surface(
     iv_grid = (
         iv_grid.interpolate("linear", axis=0)
         .interpolate("linear", axis=1)
-
+        .ffill(axis=0)
+        .bfill(axis=0)
+        .ffill(axis=1)
+        .bfill(axis=1)
     )
+
     # mesh for Plotly
     maturities = iv_grid.index.to_numpy(dtype=float)      # y-axis (days)
     strikes = iv_grid.columns.to_numpy(dtype=float)    # x-axis
