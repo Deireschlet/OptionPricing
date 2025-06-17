@@ -80,30 +80,31 @@ def plot_vol_surface(
         df = df.reset_index(names=maturity_col)
 
     # compute implied vol and moneyness for every row
+    df = df.query("(bid > 0) & (volume > 0)")
     iv_series = df.apply(
         lambda r: iv_func(
             C_market=r[price_col], S0=spot, K=r[strike_col], T=r[maturity_col], r=risk_free_rate
         ),
         axis=1,
     )
+    moneyness_series = df[strike_col] / spot
 
-    moneyness_series = df[strike_col] / df[price_col]
-
-    df_iv = df.assign(iv=iv_series,
-                      moneyness=moneyness_series)
+    # sanity filter 1 % – 300 % sanity
+    mask = iv_series.between(0.05, 1.5)
+    df_iv = df.loc[mask].assign(
+        iv=iv_series[mask],
+        moneyness=moneyness_series[mask],
+    )
 
     # reshape to 2-D grid: rows = maturities, cols = moneyness
     iv_grid = df_iv.pivot_table(
         index=maturity_col, columns="moneyness", values="iv", aggfunc="mean"
-    ).sort_index()
+    ).sort_index().sort_index(axis=1)
 
     iv_grid = (
         iv_grid.interpolate("linear", axis=0)
         .interpolate("linear", axis=1)
-        .ffill(axis=0)
-        .bfill(axis=0)
-        .ffill(axis=1)
-        .bfill(axis=1)
+
     )
     # mesh for Plotly
     maturities = iv_grid.index.to_numpy(dtype=float)      # y-axis (days)
