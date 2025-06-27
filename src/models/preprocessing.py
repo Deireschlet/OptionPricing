@@ -13,8 +13,8 @@ from setup.logger import log_call
 @log_call(logger)
 def prepare_data(ticker: str=None, opt_type: str=None):
     if ticker and opt_type:
-        df = fetch_option_data(ticker="TSLA", opt_type="call")
-        df = df.assign(option_type="call").reset_index()
+        df = fetch_option_data(ticker=ticker, opt_type=opt_type)
+        df = df.assign(option_type=opt_type).reset_index()
         return df
     else:
         return None
