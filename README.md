@@ -1,39 +1,134 @@
-# Python Project Template
-
-Welcome to the **Python Project Template** — your go-to starting point for small Python projects. This template is here to make your life easier (and maybe even a little more fun) by setting up the essentials so you can focus on what really matters: writing great code.
-
-Whether you're working on a side project, experimenting with a new idea, or just want a quick start, this template has your back. It includes a package manager, logging setup, and a configuration loader, all ready to go!
-
+# Options Pricing and Analysis Tool
+## Project Overview
+This project is a comprehensive options pricing and analysis tool built as a final project for CS50. It provides both a web interface and programmatic tools for options pricing, Greek calculation, volatility estimation, and machine learning-based options price prediction. The application combines traditional financial models like Black-Scholes with advanced techniques including Monte Carlo simulations and machine learning algorithms to provide a full suite of options analysis capabilities.
 ## Features
+- **Contract Setup**: Easy configuration of option contracts with customizable parameters
+- **Pricing Models**: Multiple pricing methodologies including:
+    - Black-Scholes analytical solution for European options
+    - Monte Carlo simulation for European options
+    - Longstaff-Schwartz Least Square Monte Carlo for American options
 
-- **Package Management with uv**: Say goodbye to manually managing your environment. This template uses [**uv**](https://github.com/astral-sh/uv), a super-fast Python package manager that handles dependencies and virtual environments for you. It’s like having a personal assistant for your project.
-  
-- **Logger Setup**: No more manually setting up loggers every time. With our pre-configured logger, you get neat logs in both the console and a rotating log file. Never miss an important error or warning again!
+- **Greeks Calculation**: Computation of option sensitivity measures (Delta, Gamma, Theta, Vega, Rho)
+- **Implied Volatility**: Calculation and visualization of implied volatility
+- **Machine Learning Models**: Price prediction using three different ML approaches:
+    - Linear Regression
+    - Random Forest
+    - XGBoost
 
-- **Configuration Loader**: Centralized, clean configuration management! Define your project settings in a simple `config.ini` file and access them from anywhere. It’s like having a settings dashboard for your code, but cooler.
+- **Interactive UI**: Built with Streamlit for intuitive exploration and analysis
 
-### Password Encryption Script – How to Use
+## Project Structure
+### Core Files
+- : Main entry point that provides the option contract setup interface **0_Home.py**
+- : Backend entry point for programmatic usage of the library **main.py**
+- : Project configuration, dependencies, and metadata **pyproject.toml**
+- : Project dependencies for installation **requirements.txt**
+- : Configuration settings for models, paths, and project parameters **config.ini**
 
-This script helps you securely store an **encrypted password or phrase** in a `.env` file using a generated encryption key (`pass.key`). It keeps sensitive data out of version control while still allowing secure access in your project.
+### Directories
+- **/src**: Core library code
+    - **/src/models**: Machine learning model implementation
+    - **/src/ui**: User interface components
+    - **/src/utils**: Utility functions
 
-#### How to use it:
+- **/pages**: Streamlit app pages for different features
+- **/setup**: Project setup and configuration code
+- : Data storage for market data and saved models **/data**
+- **/tests**: Unit and integration tests
+- **/notebooks**: Jupyter notebooks for development and demonstration
+- **/logs**: Application logs
 
-1. **Run the script**  
-   This will:
-   - Prompt you for a password
-   - Create `pass.key` (if it doesn't exist)
-   - Encrypt the password
-   - Save it to a `.env` file under `ENCRYPTED_PASSWORD`
+## Key Components in Detail
+### Option Contract Representation
+The file defines the core class that encapsulates all parameters of an option contract, including: `src/option.py``Option`
+- Option type (call/put)
+- Strike price
+- Maturity
+- Risk-free rate
+- Volatility
+- Underlying asset information
 
-2. **Use the password in your code**  
-   Import the required functions and load the `.env`:
-   ```python
-   from dotenv import load_dotenv
-   from setup.utils import decrypt_password, load_key
-   import os
+This class serves as the foundation for all pricing and analysis operations throughout the application.
+### Pricing Models
+The project implements multiple pricing approaches:
+1. **Black-Scholes Model**: Analytical solution for European options that provides a closed-form formula for option pricing. `src/computation.py`
+2. **Monte Carlo Simulation**: Stochastic simulation method that generates thousands of potential price paths to estimate option values, providing distribution insights beyond just the expected price. `src/monte_carlo_pricing.py`
+3. **Least Square Monte Carlo**: Advanced technique for pricing American options that allows for early exercise valuation, using regression techniques to estimate continuation values. `src/least_square_mc.py`
 
-   load_dotenv()
-   encrypted_pw = os.getenv("ENCRYPTED_PASSWORD")
-   password = decrypt_password(encrypted_pw, load_key())
+### Machine Learning Pipeline
+The ML component (`src/models`) implements a complete pipeline for training and evaluating option pricing models:
+1. **Preprocessing**: Data preparation, feature engineering, and scaling `src/models/preprocessing.py`
+2. **Modeling**: Pipeline creation for three model types with hyperparameter configurations `src/models/modeling.py`
+3. **Evaluation**: Model assessment with metrics like MAE, RMSE, and R² `src/models/evaluate.py`
+4. **Model Storage**: Persistent storage of trained models with data hashing to avoid retraining `src/models/model_store.py`
 
-⚠️ This project is a work in progress — things might change, break, or magically improve at any time!
+I designed the ML pipeline to be extensible, allowing for easy addition of new models and features. The system automatically caches trained models based on data hashes to avoid redundant computation.
+### User Interface
+The Streamlit-based UI is organized into multiple pages:
+1. **Home**: Contract setup and configuration `0_Home.py`
+2. **Pricing**: Option pricing with different methodologies `pages/1_Pricing.py`
+3. **Greeks**: Sensitivity analysis `pages/2_Greeks.py`
+4. **Implied Volatility**: Volatility calculation and visualization `pages/3_Implied_Volatility.py`
+5. **Machine Learning**: ML model training, evaluation, and prediction `pages/4_Machine_Learning.py`
+
+Each page provides interactive controls and visualizations for exploring different aspects of options analysis.
+### Data Handling
+The component manages data acquisition and processing, including: `src/data_handler.py`
+- Fetching option data for specific tickers and option types
+- Retrieving latest prices
+- Data transformation and preparation for pricing models and ML
+
+## Design Considerations
+### Modular Architecture
+I deliberately designed the system with high modularity to separate concerns and enable flexible usage. Each component (pricing, Greeks, ML) can function independently, allowing the system to be used either through the UI or programmatically.
+### Performance Optimization
+For computationally intensive operations like Monte Carlo simulations and ML model training, I implemented:
+- Caching mechanisms to avoid redundant calculations
+- Parallelization where applicable
+- Selective computation of expensive operations only when necessary
+
+### Extensibility
+The project is structured to allow easy extension:
+- New pricing models can be added without changing existing code
+- Additional ML algorithms can be incorporated by extending the modeling module
+- The UI is decoupled from core functionality, enabling alternative interfaces
+
+## Getting Started
+1. Set up environment and install dependencies using `uv`:
+``` 
+   uv venv
+   uv pip install -r requirements.txt
+```
+The project uses `uv` as the package manager for faster dependency resolution and installation. The file ensures reproducible environments across different setups. `uv.lock`
+1. Run the Streamlit application:
+``` 
+   streamlit run 0_Home.py
+```
+1. For programmatic usage, import the relevant modules:
+``` python
+   from src.option import Option
+   from src.computation import black_scholes
+   
+   # Create an option contract
+   option = Option(
+       spot_price=100.0,
+       option_type="call",
+       strike_price=105.0,
+       maturity=30,
+       risk_free_rate=0.05,
+       volatility=0.2,
+       underlying_ticker="AAPL"
+   )
+   
+   # Calculate option price
+   price = black_scholes(S0=option.spot_price, option=option)
+```
+## Future Enhancements
+- Integration with real-time market data APIs
+- Additional option pricing models (e.g., Heston model)
+- Support for exotic options
+- Portfolio analysis and optimization
+- Sensitivity analysis and stress testing
+
+## Conclusion
+This project provides a comprehensive toolkit for options analysis, combining traditional financial models with modern machine learning approaches. It demonstrates how computational methods can enhance financial modeling and provide insights beyond conventional techniques.

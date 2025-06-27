@@ -1,26 +1,27 @@
 import streamlit as st
 
 from src.visualization import plot_greeks_vs_strike, plot_greeks_vs_maturity
+from src.ui.sidebar import contract_badge
 from src.option import Option
 from setup import logger, config
 
 TRADING_DAYS = config.getint("PROJECT", "trading_days")
 YEAR = config.getint("PROJECT", "year")
 
+st.set_page_config(layout="wide")
+st.title("🏛️ Option Greeks Visualizer")
+
 if "option_obj" not in st.session_state:
     st.warning("Please first price an option on the Home page – no session data found.")
     st.stop()
 
-
-st.set_page_config(layout="wide")  # better use of screen space
-st.title("🏛️ Option Greeks Visualizer")
 plot_choice = st.sidebar.radio("Plot", ["Greeks vs Strike", "Greeks vs Time to Maturity"])
 
-# Sidebar parameters
+
 st.sidebar.header("Parameters")
 
 option_obj: Option = st.session_state["option_obj"]
-st.write("option object:", option_obj.to_tuple())
+
 spot, strike, maturity, rate, vola, opt_type = option_obj.to_tuple()
 
 S0 = st.sidebar.slider("Spot Price", spot*0.5, spot*2, spot)
@@ -28,6 +29,7 @@ sigma = st.sidebar.slider("Volatility", 0.0, vola*1.5, vola)
 r = st.sidebar.slider("Risk-Free Rate", 0.0, 1.0, rate, step=0.01)
 option_type = opt_type
 
+contract_badge()
 
 # Main area
 if plot_choice == "Greeks vs Strike":

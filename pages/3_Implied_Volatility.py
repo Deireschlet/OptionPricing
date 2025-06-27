@@ -7,15 +7,17 @@ import numpy as np
 
 from src.option import Option  # type: ignore
 from src.data_handler import fetch_option_data  # type: ignore
-from src.visualization import plot_vol_surface  # type: ignore  (contains your helper)
+from src.visualization import plot_vol_surface
+from src.ui.sidebar import contract_badge
 
+st.set_page_config(layout="wide")
+st.title("Volatility Surface")
 
-# ------------------------------------------------------------------
-# 0.  Make sure session has an Option (your existing guard stays)
-# ------------------------------------------------------------------
 if "option_obj" not in st.session_state:
     st.warning("Please first price an option on the Home page – no session data found.")
     st.stop()
+
+contract_badge()
 
 option_obj: Option = st.session_state["option_obj"]
 spot, strike, maturity, rate, vola, opt_type = option_obj.to_tuple()

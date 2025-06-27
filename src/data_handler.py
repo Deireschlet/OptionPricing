@@ -80,25 +80,45 @@ def fetch_option_data(ticker: str, opt_type: str) -> pd.DataFrame:
         opt_type (str): Type of option to fetch ('call' or 'put').
 
     Returns:
-        pd.DataFrame: A DataFrame containing option chain data with days_to_maturity as index.
-            Includes columns for strike price, bid, ask, volume, implied volatility, etc.
+        pd.DataFrame: A DataFrame containing option chain data indexed by days_to_maturity.
     """
-    # todo: edit function according to rene, only select specific data
     if opt_type not in {"call", "put"}:
         raise ValueError("Invalid option type. Please enter 'call' or 'put'.")
 
-    data = yf.Ticker(ticker)
+    try:
+        data = yf.Ticker(ticker)
+        maturities = data.options
+        if not maturities:
+            raise ValueError(f"No option maturities found for ticker '{ticker}'.")
+    except Exception as e:
+        logger.error(f"Failed to initialize ticker '{ticker}': {e}")
+        return pd.DataFrame()
+
     today = pd.Timestamp.today().normalize()
     df_list = []
 
-    for date_str in data.options:
-        chain = data.option_chain(date_str)
-        df = chain.calls if opt_type == "call" else chain.puts
+    for date_str in maturities:
+        try:
+            chain = data.option_chain(date_str)
+            df = chain.calls if opt_type == "call" else chain.puts
 
-        maturity_date = pd.Timestamp(date_str)
-        days_to_maturity = (maturity_date - today).days
-        df["days_to_maturity"] = days_to_maturity
-        df_list.append(df)
+            if df.empty:
+                logger.warning(f"No {opt_type} data for maturity {date_str}. Skipping.")
+                continue
+
+            maturity_date = pd.Timestamp(date_str)
+            days_to_maturity = (maturity_date - today).days
+            df["days_to_maturity"] = days_to_maturity
+
+            df_list.append(df)
+
+        except Exception as e:
+            logger.warning(f"Failed to fetch data for {ticker} {opt_type} {date_str}: {e}")
+            continue
+
+    if not df_list:
+        logger.warning(f"No option data retrieved for {ticker} ({opt_type}).")
+        return pd.DataFrame()
 
     final_df = pd.concat(df_list, ignore_index=True)
     final_df.set_index("days_to_maturity", inplace=True)
