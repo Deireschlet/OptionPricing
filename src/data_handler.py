@@ -17,7 +17,6 @@ from setup import logger
 from setup.logger import log_call
 import streamlit as st
 import pandas as pd
-from typing import Union
 
 
 @st.cache_data(show_spinner="Fetching latest price …")

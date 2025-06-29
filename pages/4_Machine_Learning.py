@@ -195,6 +195,6 @@ if st.button("Predict price", type="primary"):
     except ValueError as e:
         if "Found unknown categories" in str(e):
             st.error(
-                f"Error: Your model was not trained with this option type. Please use a different model or option type.")
+                "Error: Your model was not trained with this option type. Please use a different model or option type.")
         else:
             st.error(f"An error occurred: {e}")

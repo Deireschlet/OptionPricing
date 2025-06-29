@@ -5,10 +5,10 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from .modeling import get_model
 from setup import logger, config
 from setup.logger import log_call
-from typing import Optional, List
+from typing import Optional
 
 from src.models import MODELS
-from .model_store import _data_hash, _save_model, _model_path, get_latest_model, get_model_names_for_ticker
+from .model_store import _data_hash, _save_model, _model_path, get_latest_model
 
 
 @log_call(logger)

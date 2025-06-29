@@ -3,7 +3,6 @@ import logging
 import sys
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
-from typing import Callable, Any
 
 
 def get_logger(name: str = "NO_NAME") -> logging.Logger:

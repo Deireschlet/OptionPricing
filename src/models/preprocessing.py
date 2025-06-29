@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.model_selection import train_test_split
 
 from src.data_handler import fetch_option_data
-from setup import logger, config
+from setup import logger
 from setup.logger import log_call
 
 
