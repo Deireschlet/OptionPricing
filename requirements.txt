@@ -106,6 +106,7 @@ rpds-py==0.25.1
 ruff==0.11.4
 scikit-learn==1.7.0
 scipy==1.15.3
+seaborn==0.13.2
 send2trash==1.8.3
 setuptools==80.9.0
 six==1.17.0

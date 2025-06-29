@@ -15,7 +15,8 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from src.computation import implied_volatility, black_scholes, black_scholes_greeks
+import seaborn as sns
+from src.computation import implied_volatility, black_scholes_greeks
 from src.option import Option
 from typing import Dict, Tuple, Optional
 
@@ -319,6 +320,92 @@ def plot_greeks_vs_maturity_from_option(
         maturity_range=maturity_range,
         num_points=num_points,
     )
+
+
+def plot_monte_carlo_paths(paths, option=None, max_paths=100):
+    """
+    Create a matplotlib figure of Monte Carlo-simulated stock paths,
+    plotting only a random subset and showing distribution at final time step.
+
+    Args:
+        paths (np.ndarray): Simulated stock price paths, shape (T+1, N).
+        option (object, optional): Option object for labeling (expects .mu, .sigma, .name).
+        max_paths (int): Max number of paths to plot (randomly selected).
+
+    Returns:
+        matplotlib.figure.Figure: The figure object for Streamlit display.
+    """
+    T_plus_1, N = paths.shape
+    subset_indices = np.random.choice(N, size=min(max_paths, N), replace=False)
+
+    # Create figure with two axes (main plot + distribution on the right)
+    fig = plt.figure(figsize=(12, 6))
+    gs = fig.add_gridspec(1, 5)
+    ax_paths = fig.add_subplot(gs[0, :4])
+    ax_dist = fig.add_subplot(gs[0, 4], sharey=ax_paths)
+
+    # Plot subset of paths
+    for idx in subset_indices:
+        ax_paths.plot(paths[:, idx], lw=0.8, alpha=0.7)
+
+    # Label
+    if option:
+        title = rf"{option.underlying_ticker} - Monte Carlo Simulation ($\mu={option.risk_free_rate:.2f}$, $\sigma={option.volatility:.2f}$)"
+    else:
+        title = "Monte Carlo Simulated Stock Paths"
+
+    ax_paths.set_title(title)
+    ax_paths.set_xlabel('Time Steps (Days)')
+    ax_paths.set_ylabel('Stock Price')
+    ax_paths.grid(True, linestyle='--', alpha=0.5)
+
+    # Plot distribution at final time step
+    final_prices = paths[-1]
+    sns.kdeplot(y=final_prices, ax=ax_dist, fill=True, linewidth=1.5, alpha=0.7)
+    ax_dist.set_xlabel('')
+    ax_dist.set_ylabel('')
+    ax_dist.grid(False)
+    ax_dist.set_xticks([])
+
+    plt.tight_layout()
+    return fig
+
+
+def plot_profit_distribution(price_at_maturity, profit_vector, option=None):
+    """
+    Plot histogram/KDE of simulated final stock prices with strike and profit info.
+
+    Args:
+        price_at_maturity (np.ndarray): Simulated final stock prices.
+        profit_vector (np.ndarray): Profit for each path.
+        option (object, optional): Option object for labeling (expects .strike, .name, etc.).
+
+    Returns:
+        matplotlib.figure.Figure: The figure object for Streamlit display.
+    """
+    strike = option.strike_price if option else None
+    name = option.underlying_ticker if option else "Option"
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    # KDE or histogram
+    sns.histplot(price_at_maturity, bins=50, kde=True, ax=ax, stat="density", color='steelblue', alpha=0.6)
+
+    # Strike price line
+    if strike:
+        ax.axvline(strike, color='red', linestyle='--', label=f'Strike = {strike}')
+
+    # Profit info (basic)
+    pct_profitable = (profit_vector > 0).mean() * 100
+    ax.set_title(f"{name} - Profit Distribution\nProfitable Paths: {pct_profitable:.1f}%", fontsize=13)
+
+    ax.set_xlabel("Final Stock Price")
+    ax.set_ylabel("Density")
+    ax.grid(True, linestyle='--', alpha=0.5)
+    ax.legend()
+    plt.tight_layout()
+    return fig
+
 if __name__ == "__main__":
     pass
 

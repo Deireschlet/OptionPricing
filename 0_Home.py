@@ -69,4 +69,3 @@ if submitted:
             "σ"        : f"{sigma:.2%}"
         })
 
-    st.page_link("pages/1_Pricing.py", label="→ Continue to Pricing page")

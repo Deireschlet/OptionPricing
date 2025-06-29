@@ -1,7 +1,8 @@
 import pandas as pd
 from setup import logger, config
 from setup.logger import log_call
-from src.computation import annualized_historical_vola, simulate_stock_paths, discounted_avg_payoff, payoff
+from src.computation import annualized_historical_vola, simulate_stock_paths, discounted_avg_payoff, payoff \
+    ,simulate_paths_jump_diffusion
 from src.option import Option
 
 N_PATHS = config.getint("PROJECT", "simulations")
@@ -15,6 +16,7 @@ def mc_pricing(option: Option=None,
                r=None,
                sigma=None,
                opt_type="call",
+               mode="vanilla",
                ):
 
     if option is not None:
@@ -26,12 +28,20 @@ def mc_pricing(option: Option=None,
         sigma = float(option.volatility)
 
     # mu=r otherwise it does not work
-    asset_paths = simulate_stock_paths(df['Close'].iloc[-1],
-                                     mu=r,
-                                     sigma=sigma,
-                                     T=T,
-                                     N=n_paths
-                                     )
+    if mode == "vanilla":
+        asset_paths = simulate_stock_paths(df['Close'].iloc[-1],
+                                         mu=r,
+                                         sigma=sigma,
+                                         T=T,
+                                         N=n_paths
+                                         )
+    else:
+        asset_paths = simulate_paths_jump_diffusion(df['Close'].iloc[-1],
+                                                    mu=r,
+                                                    sigma=sigma,
+                                                    T=T,
+                                                    N=n_paths,
+                                                    )
 
     price_at_maturity = asset_paths[-1]
 
@@ -49,7 +59,7 @@ def mc_pricing(option: Option=None,
 
     profit_vector = payoff_vector - mc_price
 
-    return mc_price, profit_vector, price_at_maturity
+    return mc_price, profit_vector, price_at_maturity, asset_paths
 
 if __name__ == "__main__":
     mc_pricing()

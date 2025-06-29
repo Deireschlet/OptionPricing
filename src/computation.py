@@ -2,7 +2,6 @@ import os
 import sys
 import numpy as np
 import pandas as pd
-from scipy.constants import sigma
 from scipy.stats import norm
 from scipy.optimize import brentq
 from src.option import Option
@@ -60,6 +59,36 @@ def simulate_stock_paths(S0: float, mu: float=0, sigma: float=None, T: int=None,
         Z = np.random.normal(size=N)
         prices[i] = prices[i - 1] * np.exp((mu - 0.5 * sigma ** 2) * dt + sigma * np.sqrt(dt) * Z)
     return prices
+
+
+@log_call(logger)
+def simulate_paths_jump_diffusion(S0, mu, sigma, T, N,
+                                  lam=0.1,  # jumps/year
+                                  mu_j=-0.05, sigma_j=0.10,
+                                  trading_days=252, seed=None):
+    """
+    Merton (1976) jump-diffusion: GBM + compound-Poisson log-normal jumps.
+
+    lam     : expected # of jumps per year
+    mu_j    : mean of ln(1+J) jump size
+    sigma_j : std  of ln(1+J)
+    """
+    rng = np.random.default_rng(seed)
+    dt = 1 / trading_days
+    drift = (mu - 0.5 * sigma**2 - lam * (np.exp(mu_j + 0.5*sigma_j**2) - 1))
+    prices = np.empty((T + 1, N))
+    prices[0] = S0
+
+    for i in range(1, T + 1):
+        # diffusion part
+        Z = rng.standard_normal(size=N)
+        diff_step = (drift * dt + sigma * np.sqrt(dt) * Z)
+        # jump part
+        Nj = rng.poisson(lam * dt, size=N)
+        J  = rng.normal(mu_j, sigma_j, size=N) * Nj
+        prices[i] = prices[i-1] * np.exp(diff_step + J)
+    return prices
+
 
 @log_call(logger)
 def black_scholes(option: Option=None, S0=None,  K=None, T=None, r=None, sigma=None, option_type="call"):

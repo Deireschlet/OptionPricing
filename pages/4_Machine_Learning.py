@@ -7,7 +7,7 @@ from src.models import MODELS
 from src.models.preprocessing import prepare_data, get_train_test_data
 from src.models.evaluate import create_eval_table, save_eval_table
 from src.models.model_store import get_latest_model, get_model_names_for_ticker
-from src.ui.sidebar import contract_badge
+from src.ui.sidebar import contract_badge, pricing_badge
 from setup import logger
 from setup.logger import log_call
 
@@ -18,6 +18,8 @@ if "option_obj" not in st.session_state:
     st.stop()
 
 contract_badge()
+pricing_badge()
+
 opt = st.session_state["option_obj"]
 
 ticker, opt_type = opt.underlying_ticker, opt.option_type
@@ -132,7 +134,7 @@ def predict_price(
         raise
 
 
-st.title(f"📊 ML Model Results — {ticker} / {opt_type}")
+st.title(f"ML Model Results — {ticker} / {opt_type}")
 
 st.subheader("Performance on the hold‑out test set")
 st.dataframe(eval_df, use_container_width=True)
@@ -142,7 +144,7 @@ with st.expander("🔍 Compare individual metrics"):
     st.bar_chart(eval_df.set_index("Model_ID")[metric])
 
 st.divider()
-st.header("🧮 Predict a single option price")
+st.header("Predict a single option price")
 
 # Get available model names for this ticker
 available_models = [row for row in eval_df["Model_ID"]]
