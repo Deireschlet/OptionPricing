@@ -11,7 +11,7 @@ class Option:
     including option type, strike price, maturity, and other relevant information.
     """
 
-    def __init__(self, option_type, strike_price, maturity, risk_free_rate, volatility, underlying_ticker=None):
+    def __init__(self, spot_price, option_type, strike_price, maturity, risk_free_rate, volatility, underlying_ticker=None):
         """
         Initialize an Option object.
 
@@ -33,6 +33,7 @@ class Option:
         if volatility and volatility <= 0:
             raise ValueError("Volatility must be a positive number")
 
+        self.spot_price = spot_price
         self.option_type = option_type
         self.strike_price = strike_price
         self.maturity = maturity  # in days
@@ -42,6 +43,7 @@ class Option:
 
     def to_tuple(self):
         return (
+            self.spot_price,
             self.strike_price,
             self.maturity,
             self.risk_free_rate,

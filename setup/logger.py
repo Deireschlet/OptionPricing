@@ -3,7 +3,6 @@ import logging
 import sys
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
-from typing import Callable, Any
 
 
 def get_logger(name: str = "NO_NAME") -> logging.Logger:
@@ -37,8 +36,8 @@ def get_logger(name: str = "NO_NAME") -> logging.Logger:
         log_file = log_dir / f"{name}.log"
         file_handler = RotatingFileHandler(
             log_file,
-            maxBytes=5 * 1024 * 1024,  # 5 MB
-            backupCount=3,             # Keep 3 backups
+            maxBytes=10 * 1024 * 1024,  # 10 MB
+            backupCount=7,             # Keep 7 backups
             encoding="utf-8"
         )
         file_handler.setLevel(logging.DEBUG)

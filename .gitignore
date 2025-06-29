@@ -25,3 +25,13 @@ pass.key
 
 # pickle files
 *.pkl
+
+# gitignore template for Jupyter Notebooks
+# website: http://jupyter.org/
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+#random temp folder
+data
+
+saved_models/

@@ -3,8 +3,6 @@ import sys
 import pytest
 import numpy as np
 import pandas as pd
-from unittest.mock import patch, MagicMock
-from scipy.stats import norm
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

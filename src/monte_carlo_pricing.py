@@ -1,30 +1,47 @@
 import pandas as pd
 from setup import logger, config
 from setup.logger import log_call
-from src.computation import annualized_historical_vola, simulate_stock_paths, discounted_avg_payoff, payoff
+from src.computation import annualized_historical_vola, simulate_stock_paths, discounted_avg_payoff, payoff \
+    ,simulate_paths_jump_diffusion
 from src.option import Option
 
+N_PATHS = config.getint("PROJECT", "simulations")
 
 @log_call(logger)
-def mc_pricing(option: Option, df: pd.DataFrame=None, n_paths: int=config.getint("PROJECT", "simulations")):
+def mc_pricing(option: Option=None,
+               df: pd.DataFrame=None,
+               n_paths: int=N_PATHS,
+               K=None,
+               T=None,
+               r=None,
+               sigma=None,
+               opt_type="call",
+               mode="vanilla",
+               ):
 
-    if not option.volatility:
-        vola = annualized_historical_vola(df)
+    if option is not None:
+        S0, K, T, r, sigma, opt_type = option.to_tuple()
+
+    if sigma is None:
+        sigma = annualized_historical_vola(df)
     else:
-        vola = float(option.volatility)
-
-    r = option.risk_free_rate
-    T = option.maturity
-    K = option.strike_price
-    opt_type = option.option_type
+        sigma = float(option.volatility)
 
     # mu=r otherwise it does not work
-    asset_paths = simulate_stock_paths(df['Close'].iloc[-1],
-                                     mu=r,
-                                     sigma=vola,
-                                     T=T,
-                                     N=n_paths
-                                     )
+    if mode == "vanilla":
+        asset_paths = simulate_stock_paths(df['Close'].iloc[-1],
+                                         mu=r,
+                                         sigma=sigma,
+                                         T=T,
+                                         N=n_paths
+                                         )
+    else:
+        asset_paths = simulate_paths_jump_diffusion(df['Close'].iloc[-1],
+                                                    mu=r,
+                                                    sigma=sigma,
+                                                    T=T,
+                                                    N=n_paths,
+                                                    )
 
     price_at_maturity = asset_paths[-1]
 
@@ -42,7 +59,7 @@ def mc_pricing(option: Option, df: pd.DataFrame=None, n_paths: int=config.getint
 
     profit_vector = payoff_vector - mc_price
 
-    return mc_price, profit_vector, price_at_maturity
+    return mc_price, profit_vector, price_at_maturity, asset_paths
 
 if __name__ == "__main__":
     mc_pricing()
