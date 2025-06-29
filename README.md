@@ -120,13 +120,14 @@ The component manages data acquisition and processing, including:
 
 ## Design Considerations
 ### Modular Architecture
-I deliberately designed the system with high modularity to separate concerns and enable flexible usage. Each component (pricing, Greeks, ML) can function independently, allowing the system to be used either through the UI or programmatically.
+I deliberately designed the system with high modularity to separate concerns and enable flexible usage. 
+Each component (pricing, Greeks, ML) can function independently, allowing the system to be used either through the UI 
+or programmatically.
 ### Performance Optimization
 For computationally intensive operations like Monte Carlo simulations and ML model training, I implemented:
 - Caching mechanisms to avoid redundant calculations
 - Parallelization where applicable
 - Selective computation of expensive operations only when necessary
-
 ### Extensibility
 The project is structured to allow easy extension:
 - New pricing models can be added without changing existing code
