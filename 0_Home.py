@@ -13,7 +13,22 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-st.title("Option Contract Setup")
+st.markdown("""
+## Welcome to the Options Analysis Tool
+
+This interactive application provides comprehensive options analysis capabilities for financial professionals, traders, 
+and students. Configure your option contract parameters below to begin.
+
+**With this tool, you can:**
+- Price options using Black-Scholes, Monte Carlo, and Least Square Monte Carlo methods
+- Calculate and visualize option Greeks (Delta, Gamma, Theta, Vega, Rho)
+- Determine implied volatility from market prices
+- Leverage machine learning models to predict option prices
+
+Once you've set up your contract, use the sidebar navigation to explore different analysis features.
+""")
+
+st.markdown("### Set up your option contract")
 
 with st.form("setup_form", clear_on_submit=False):
     c1, c2 = st.columns(2, gap="large")
